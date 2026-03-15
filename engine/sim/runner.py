@@ -8,6 +8,9 @@ import re
 if TYPE_CHECKING:
     from engine.data.aggregator import MarketContext
 
+# LLM-powered parser (falls back to keyword parser on failure)
+from engine.sim.llm_parser import parse_catalyst_bias_llm
+
 
 class CrowdState(TypedDict):
     ticker: str
@@ -172,7 +175,7 @@ def run_simulation(
 
     All existing tick logic is unchanged.
     """
-    catalyst_bias = parse_catalyst_bias(catalyst)
+    catalyst_bias = parse_catalyst_bias_llm(catalyst)
 
     # --- Market-context bias adjustments (only touches catalyst_bias) -
     if market_context is not None:
