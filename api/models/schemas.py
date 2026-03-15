@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -53,6 +55,10 @@ class SimulationResult(BaseModel):
         probability_up:   Estimated probability of net upward price movement.
         probability_down: Estimated probability of net downward price movement.
         personas:         Per-persona sentiment breakdown.
+        current_price:    Live price from yfinance (None if unavailable).
+        volume_vs_avg:    Today's volume / 30-day avg (None if unavailable).
+        reddit_mentions:  Reddit posts mentioning ticker in last 2 h (None if unavailable).
+        reddit_sentiment: Bag-of-words Reddit sentiment in [-1, 1] (None if unavailable).
     """
 
     ticker: str
@@ -62,3 +68,9 @@ class SimulationResult(BaseModel):
     probability_up: float
     probability_down: float
     personas: list[PersonaSentiment]
+
+    # Live market context fields — all Optional for graceful degradation
+    current_price: Optional[float] = None
+    volume_vs_avg: Optional[float] = None
+    reddit_mentions: Optional[int] = None
+    reddit_sentiment: Optional[float] = None

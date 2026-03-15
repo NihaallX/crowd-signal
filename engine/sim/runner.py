@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 from engine.agents.persona import AgentState, PersonaType
 import random
 import re
+
+if TYPE_CHECKING:
+    from engine.data.aggregator import MarketContext
 
 
 class CrowdState(TypedDict):
@@ -151,8 +154,54 @@ def tick_update(agents: list[AgentState], catalyst_bias: float) -> list[AgentSta
     return updated
 
 
-def run_simulation(ticker: str, catalyst: str, horizon_minutes: int = 120) -> dict:
+def run_simulation(
+    ticker: str,
+    catalyst: str,
+    horizon_minutes: int = 120,
+    market_context: "MarketContext | None" = None,
+) -> dict:
+    """Run the crowd simulation and return aggregated results.
+
+    If *market_context* is provided, the raw ``catalyst_bias`` derived
+    from the catalyst text is further adjusted before agents are spawned:
+
+    * ``volume_vs_avg > 1.5``          → bias amplified ×1.2
+    * ``reddit_mentions > 50``         → bias magnitude +0.1
+    * ``options_put_call_ratio > 1.5`` → nudge bearish (−0.1)
+    * ``options_put_call_ratio < 0.5`` → nudge bullish (+0.1)
+
+    All existing tick logic is unchanged.
+    """
     catalyst_bias = parse_catalyst_bias(catalyst)
+
+    # --- Market-context bias adjustments (only touches catalyst_bias) -
+    if market_context is not None:
+        # High volume amplifies the catalyst effect
+        if (
+            market_context.volume_vs_avg is not None
+            and market_context.volume_vs_avg > 1.5
+        ):
+            catalyst_bias *= 1.2
+
+        # High social activity → more volatile crowd
+        if (
+            market_context.reddit_mentions is not None
+            and market_context.reddit_mentions > 50
+        ):
+            # Push in the direction already implied by the bias
+            sign = 1.0 if catalyst_bias >= 0 else -1.0
+            catalyst_bias += sign * 0.1
+
+        # Smart-money options signal
+        if market_context.options_put_call_ratio is not None:
+            if market_context.options_put_call_ratio > 1.5:
+                catalyst_bias -= 0.1  # heavy put buying → bearish tilt
+            elif market_context.options_put_call_ratio < 0.5:
+                catalyst_bias += 0.1  # heavy call buying → bullish tilt
+
+        catalyst_bias = _clamp_stance(catalyst_bias)
+    # ------------------------------------------------------------------
+
     state: CrowdState = {
         "ticker": ticker,
         "catalyst": catalyst,
