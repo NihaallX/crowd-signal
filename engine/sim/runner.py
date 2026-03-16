@@ -2,14 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypedDict
 from engine.agents.persona import AgentState, PersonaType
+import logging
 import random
 import re
 
 if TYPE_CHECKING:
     from engine.data.aggregator import MarketContext
 
-# LLM-powered parser (falls back to keyword parser on failure)
-from engine.sim.llm_parser import parse_catalyst_bias_llm
+# LLM-powered two-step parser (with compatibility float parser retained)
+from engine.sim.llm_parser import parse_catalyst_analysis_llm
+
+logger = logging.getLogger(__name__)
 
 
 class CrowdState(TypedDict):
@@ -80,16 +83,18 @@ def spawn_agents(n: int = 100, catalyst_bias: float = 0.0) -> list[AgentState]:
         persona = random.choices(personas, weights=persona_probs, k=1)[0]
 
         if persona is PersonaType.retail_bull:
-            seeded_stance = (0.95 * catalyst_bias) + random.uniform(-0.20, 0.25)
+            # Bulls are positively tilted, but still partially follow catalyst direction.
+            seeded_stance = (0.85 * catalyst_bias + 0.15) + random.uniform(-0.18, 0.18)
             react_speed = random.uniform(0.10, 0.26)
         elif persona is PersonaType.retail_bear:
-            seeded_stance = (-0.35 * catalyst_bias) + random.uniform(-0.55, 0.15)
+            # Bears are negatively tilted at neutral bias, but can still drift with strong catalysts.
+            seeded_stance = (0.65 * catalyst_bias - 0.15) + random.uniform(-0.18, 0.18)
             react_speed = random.uniform(0.03, 0.12)
         elif persona is PersonaType.whale:
-            seeded_stance = (-0.30 * catalyst_bias) + random.uniform(-0.50, 0.20)
+            seeded_stance = (0.80 * catalyst_bias) + random.uniform(-0.12, 0.12)
             react_speed = random.uniform(0.02, 0.10)
         else:
-            seeded_stance = random.uniform(-0.15, 0.15)
+            seeded_stance = (0.90 * catalyst_bias) + random.uniform(-0.14, 0.14)
             react_speed = random.uniform(0.10, 0.25)
 
         agents.append(
@@ -115,6 +120,12 @@ def tick_update(agents: list[AgentState], catalyst_bias: float) -> list[AgentSta
         majority_sign = -1.0
 
     updated: list[AgentState] = []
+    bias_magnitude = abs(catalyst_bias)
+    # Weak catalysts should create weaker crowd drift; strong catalysts can move faster.
+    peer_scale = 0.35 + (bias_magnitude * 0.65)
+    contrarian_scale = 0.35 + (bias_magnitude * 0.65)
+    gravity_scale = 0.02 + (bias_magnitude * 0.06)
+
     for i, agent in enumerate(agents):
         neighbors = [a for j, a in enumerate(agents) if j != i]
         if not neighbors:
@@ -134,11 +145,11 @@ def tick_update(agents: list[AgentState], catalyst_bias: float) -> list[AgentSta
             if target * majority_sign > 0:
                 target *= 1.25
 
-        nudge = (target - agent["stance"]) * agent["react_speed"]
-        resistance = -nudge * _contrarian_strength(agent["persona"], nudge)
+        nudge = (target - agent["stance"]) * agent["react_speed"] * peer_scale
+        resistance = -nudge * _contrarian_strength(agent["persona"], nudge) * contrarian_scale
         final_nudge = nudge + resistance
 
-        gravity = catalyst_bias * 0.05
+        gravity = catalyst_bias * gravity_scale
         if agent["persona"] is PersonaType.whale:
             gravity *= 0.3
         elif agent["persona"] is PersonaType.algo:
@@ -175,7 +186,8 @@ def run_simulation(
 
     All existing tick logic is unchanged.
     """
-    catalyst_bias = parse_catalyst_bias_llm(catalyst)
+    catalyst_analysis = parse_catalyst_analysis_llm(catalyst)
+    catalyst_bias = catalyst_analysis["final_bias"]
 
     # --- Market-context bias adjustments (only touches catalyst_bias) -
     if market_context is not None:
@@ -203,12 +215,32 @@ def run_simulation(
                 catalyst_bias += 0.1  # heavy call buying → bullish tilt
 
         catalyst_bias = _clamp_stance(catalyst_bias)
+
+    market_delta = catalyst_bias - catalyst_analysis["final_bias"]
+    if abs(market_delta) > 1e-9:
+        catalyst_analysis["market_adjustment"] += market_delta
+        catalyst_analysis["final_bias"] = catalyst_bias
+        catalyst_analysis["reasoning"].append(
+            {
+                "rule": "market_context_adjustment",
+                "effect": "contextual_shift",
+                "weight": market_delta,
+                "detail": "Live market context adjusted catalyst bias after extraction and graph synthesis.",
+            }
+        )
     # ------------------------------------------------------------------
+
+    spawned_agents = spawn_agents(catalyst_bias=catalyst_bias)
+    initial_mean_stance = (
+        sum(agent["stance"] for agent in spawned_agents) / len(spawned_agents)
+        if spawned_agents
+        else 0.0
+    )
 
     state: CrowdState = {
         "ticker": ticker,
         "catalyst": catalyst,
-        "agents": spawn_agents(catalyst_bias=catalyst_bias),
+        "agents": spawned_agents,
         "tick": 0,
         "max_ticks": max(1, min(48, horizon_minutes // 5)),
     }
@@ -227,15 +259,17 @@ def run_simulation(
     up_count = 0
     down_count = 0
 
+    probability_threshold = 0.25
+
     for agent in agents:
         persona_key = agent["persona"].value
         persona_counts[persona_key] += 1
         persona_stance_totals[persona_key] += agent["stance"]
         persona_confidence_totals[persona_key] += agent["confidence"]
 
-        if agent["stance"] > 0.1:
+        if agent["stance"] > probability_threshold:
             up_count += 1
-        elif agent["stance"] < -0.1:
+        elif agent["stance"] < -probability_threshold:
             down_count += 1
 
         if agent["stance"] > 0.2:
@@ -246,6 +280,17 @@ def run_simulation(
             buckets["neutral"] += 1
 
     mean_stance = sum(agent["stance"] for agent in agents) / total if total else 0.0
+    probability_down = (down_count / total) if total else 0.0
+
+    logger.warning(
+        "bias_diagnostics ticker=%s catalyst_bias=%.4f initial_mean_stance=%.4f final_mean_stance=%.4f probability_down=%.4f",
+        ticker,
+        catalyst_bias,
+        initial_mean_stance,
+        mean_stance,
+        probability_down,
+    )
+
     persona_mean_stance = {
         key: (persona_stance_totals[key] / persona_counts[key] if persona_counts[key] else 0.0)
         for key in persona_counts
@@ -258,8 +303,10 @@ def run_simulation(
     return {
         "ticker": state["ticker"],
         "catalyst": state["catalyst"],
+        "catalyst_analysis": catalyst_analysis,
         "ticks_run": state["tick"],
         "agent_count": total,
+        "initial_mean_stance": initial_mean_stance,
         "mean_stance": mean_stance,
         "up_count": up_count,
         "down_count": down_count,

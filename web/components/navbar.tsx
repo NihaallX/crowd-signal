@@ -63,13 +63,14 @@ export function Navbar() {
             <span className="hidden sm:block text-xs font-mono tracking-widest uppercase text-muted-foreground">
               Active Development
             </span>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-foreground text-background px-4 py-2 text-xs font-mono tracking-widest uppercase"
-            >
-              Open Simulator
-            </motion.button>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Link
+                href="/simulate"
+                className="inline-flex bg-foreground text-background px-4 py-2 text-xs font-mono tracking-widest uppercase"
+              >
+                Open Simulator
+              </Link>
+            </motion.div>
           </motion.div>
         </div>
       </nav>

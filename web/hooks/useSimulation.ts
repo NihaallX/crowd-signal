@@ -15,6 +15,52 @@ export type PersonaResult = {
   weight: number
 }
 
+export type CatalystExtraction = {
+  primary_entity: string
+  event_type: string
+  magnitude: string
+  direction: string
+  related_entities: string[]
+}
+
+export type CatalystGraphNode =
+  | string
+  | {
+      id: string
+      kind?: string
+      label?: string
+      description?: string
+    }
+
+export type CatalystGraphEdge =
+  | string
+  | {
+      source: string
+      target: string
+      relation?: string
+      weight?: number
+      adjustment?: number
+      description?: string
+    }
+
+export type CatalystReasoningEntry = {
+  rule: string
+  description?: string
+  detail?: string
+  adjustment?: number
+  weight?: number
+  effect?: string
+}
+
+export type CatalystAnalysis = {
+  extraction: CatalystExtraction
+  graph_nodes: CatalystGraphNode[]
+  graph_edges: CatalystGraphEdge[]
+  reasoning: CatalystReasoningEntry[]
+  final_bias: number
+  market_scope: string
+}
+
 export type SimulateResponse = {
   ticker: string
   catalyst: string
@@ -22,11 +68,22 @@ export type SimulateResponse = {
   probability_up: number
   probability_down: number
   personas: PersonaResult[]
+  catalyst_analysis?: CatalystAnalysis | null
 }
 
 type ProxyErrorShape = {
   error?: string
   details?: unknown
+}
+
+function stringifyDetails(details: unknown): string {
+  if (typeof details === "string") return details
+  if (details === null || details === undefined) return ""
+  try {
+    return JSON.stringify(details)
+  } catch {
+    return String(details)
+  }
 }
 
 export function useSimulation() {
@@ -50,8 +107,11 @@ export function useSimulation() {
       const json = (await response.json()) as SimulateResponse | ProxyErrorShape
 
       if (!response.ok) {
-        const message = (json as ProxyErrorShape)?.error ?? "Simulation request failed."
-        throw new Error(message)
+        const errJson = json as ProxyErrorShape
+        const message = errJson?.error ?? "Simulation request failed."
+        const detailText = stringifyDetails(errJson?.details)
+        const statusPrefix = `HTTP ${response.status}`
+        throw new Error(detailText ? `${statusPrefix} - ${message}: ${detailText}` : `${statusPrefix} - ${message}`)
       }
 
       setData(json as SimulateResponse)

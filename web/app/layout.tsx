@@ -67,7 +67,10 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#F2F1EA',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F2F1EA' },
+    { media: '(prefers-color-scheme: dark)', color: '#111111' },
+  ],
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
@@ -81,7 +84,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${jetbrainsMono.variable} ${GeistPixelGrid.variable}`} suppressHydrationWarning>
       <body className="font-mono antialiased">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>
       </body>

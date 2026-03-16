@@ -44,6 +44,55 @@ class PersonaSentiment(BaseModel):
     weight: float
 
 
+class CatalystExtraction(BaseModel):
+    """Structured catalyst entities extracted in analysis step 1."""
+
+    primary_entity: str
+    event_type: str
+    magnitude: str
+    direction: str
+    related_entities: list[str]
+
+
+class CatalystGraphNode(BaseModel):
+    """Node in the catalyst relationship graph."""
+
+    id: str
+    kind: str
+
+
+class CatalystGraphEdge(BaseModel):
+    """Directed weighted relation in the catalyst relationship graph."""
+
+    source: str
+    target: str
+    relation: str
+    weight: float
+
+
+class CatalystReasoningEntry(BaseModel):
+    """Single rule explanation for catalyst bias construction."""
+
+    rule: str
+    effect: str
+    weight: float
+    detail: str
+
+
+class CatalystAnalysis(BaseModel):
+    """Enriched catalyst bias payload with transparent reasoning."""
+
+    extraction: CatalystExtraction
+    graph_nodes: list[CatalystGraphNode]
+    graph_edges: list[CatalystGraphEdge]
+    base_bias: float
+    graph_adjustment: float
+    market_adjustment: float
+    final_bias: float
+    market_scope: str
+    reasoning: list[CatalystReasoningEntry]
+
+
 class SimulationResult(BaseModel):
     """Response payload from POST /api/v1/simulate.
 
@@ -68,6 +117,7 @@ class SimulationResult(BaseModel):
     probability_up: float
     probability_down: float
     personas: list[PersonaSentiment]
+    catalyst_analysis: Optional[CatalystAnalysis] = None
 
     # Live market context fields — all Optional for graceful degradation
     current_price: Optional[float] = None

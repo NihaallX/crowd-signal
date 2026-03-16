@@ -52,11 +52,23 @@ async def simulate(request: SimulateRequest) -> SimulationResult:
     bearish_count = int(sim_result.get("down_count", 0))
 
     if total_agents > 0:
-        probability_up = bullish_count / total_agents
-        probability_down = bearish_count / total_agents
+        raw_probability_up = bullish_count / total_agents
+        raw_probability_down = bearish_count / total_agents
     else:
-        probability_up = 0.0
-        probability_down = 0.0
+        raw_probability_up = 0.0
+        raw_probability_down = 0.0
+
+    catalyst_bias = float(
+        (sim_result.get("catalyst_analysis") or {}).get("final_bias", 0.0)
+    )
+    # Bias prior calibrated so weak catalysts stay near neutral probabilities,
+    # while strong catalysts still move probabilities meaningfully.
+    bias_probability_up = max(0.0, min(1.0, 0.5 + (0.37 * catalyst_bias)))
+    bias_probability_down = max(0.0, min(1.0, 0.5 - (0.37 * catalyst_bias)))
+
+    blend_weight = 0.9
+    probability_up = ((1.0 - blend_weight) * raw_probability_up) + (blend_weight * bias_probability_up)
+    probability_down = ((1.0 - blend_weight) * raw_probability_down) + (blend_weight * bias_probability_down)
 
     persona_counts = sim_result.get("persona_counts", {})
     persona_mean_stance = sim_result.get("persona_mean_stance", {})
@@ -85,6 +97,7 @@ async def simulate(request: SimulateRequest) -> SimulationResult:
         probability_up=probability_up,
         probability_down=probability_down,
         personas=personas,
+        catalyst_analysis=sim_result.get("catalyst_analysis"),
         # Market context fields (None when context fetch failed)
         current_price=market_context.current_price if market_context else None,
         volume_vs_avg=market_context.volume_vs_avg if market_context else None,

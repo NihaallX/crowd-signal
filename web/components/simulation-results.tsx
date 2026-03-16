@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import type { SimulateResponse } from "@/hooks/useSimulation"
 import { SimulationPersonaChart } from "@/components/simulation-persona-chart"
+import { CatalystGraph } from "@/components/catalyst-graph"
 
 type Props = {
   data: SimulateResponse
@@ -30,6 +31,16 @@ export function SimulationResults({ data }: Props) {
         <Metric label="Probability Up" value={toPercent(data.probability_up)} />
         <Metric label="Probability Down" value={toPercent(data.probability_down)} />
       </div>
+
+      {data.catalyst_analysis ? (
+        <div className="mb-5">
+          <div className="flex items-center gap-4 mb-3">
+            <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">{"// CATALYST_INTELLIGENCE"}</span>
+            <div className="flex-1 border-t border-border" />
+          </div>
+          <CatalystGraph analysis={data.catalyst_analysis} />
+        </div>
+      ) : null}
 
       <SimulationPersonaChart personas={data.personas} />
 
