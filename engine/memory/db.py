@@ -8,8 +8,25 @@ from typing import Any
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import yfinance as yf
 
 logger = logging.getLogger(__name__)
+
+
+def _fetch_price_at_simulation(ticker: str) -> float | None:
+    """Fetch current market price for *ticker*.
+
+    Returns None when unavailable so persistence remains fail-open.
+    """
+    try:
+        data = yf.Ticker(ticker).history(period="1d", interval="1m")
+        if data.empty:
+            return None
+        last_close = data["Close"].iloc[-1]
+        return float(last_close)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("price_at_simulation_fetch_failed ticker=%s error=%s", ticker, exc)
+        return None
 
 
 def _get_connection() -> psycopg2.extensions.connection | None:
@@ -44,6 +61,8 @@ def save_simulation_run(
     if conn is None:
         return
 
+    price_at_simulation = _fetch_price_at_simulation(ticker)
+
     try:
         with conn:
             with conn.cursor() as cursor:
@@ -60,9 +79,10 @@ def save_simulation_run(
                         probability_up,
                         probability_down,
                         final_bias,
-                        rules_fired
+                        rules_fired,
+                        price_at_simulation
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         ticker,
@@ -76,6 +96,7 @@ def save_simulation_run(
                         float(probability_down),
                         float(final_bias),
                         rules_fired or [],
+                        float(price_at_simulation) if price_at_simulation is not None else None,
                     ),
                 )
     except Exception as exc:  # noqa: BLE001

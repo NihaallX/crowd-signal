@@ -13,8 +13,10 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.routes.accuracy import router as accuracy_router
 from api.routes.simulate import router as simulate_router
 from api.routes.tickers import router as tickers_router
+from engine.backtesting.scheduler import start_scorer_scheduler
 
 # ---------------------------------------------------------------------------
 # Application factory
@@ -48,6 +50,30 @@ app.add_middleware(
 
 app.include_router(simulate_router, prefix="/api/v1")
 app.include_router(tickers_router, prefix="/api/v1")
+app.include_router(accuracy_router, prefix="/api/v1")
+
+_scorer_scheduler = None
+
+
+@app.on_event("startup")
+async def startup_events() -> None:
+    global _scorer_scheduler
+    try:
+        _scorer_scheduler = start_scorer_scheduler()
+    except Exception:
+        _scorer_scheduler = None
+
+
+@app.on_event("shutdown")
+async def shutdown_events() -> None:
+    global _scorer_scheduler
+    try:
+        if _scorer_scheduler is not None:
+            _scorer_scheduler.shutdown(wait=False)
+    except Exception:
+        pass
+    finally:
+        _scorer_scheduler = None
 
 
 # ---------------------------------------------------------------------------
