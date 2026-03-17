@@ -107,34 +107,6 @@ Example response shape:
 }
 ```
 
-## Local Development
-
-### Backend
-
-```bash
-python -m venv .venv
-.venv\\Scripts\\activate
-pip install -r requirements.txt
-uvicorn api.main:app --reload --port 8000
-```
-
-Optional environment variables:
-
-- `DATABASE_URL`: enable memory persistence and backtesting accuracy summaries.
-- `GROQ_API_KEY`: enable vocal crowd narrative generation.
-
-### Frontend
-
-```bash
-cd web
-corepack pnpm install
-corepack pnpm run dev
-```
-
-Optional frontend environment variable:
-
-- `BACKEND_URL` (defaults to `http://localhost:8000`)
-
 ## License and Usage Rights
 
 This project is intentionally **not open source**.
