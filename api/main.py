@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routes.accuracy import router as accuracy_router
 from api.routes.simulate import router as simulate_router
 from api.routes.tickers import router as tickers_router
+from api.routes.ws_simulate import router as ws_simulate_router
 from engine.backtesting.scheduler import start_scorer_scheduler
 
 # ---------------------------------------------------------------------------
@@ -38,7 +39,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://crowd-signal-rose.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,6 +56,7 @@ app.add_middleware(
 app.include_router(simulate_router, prefix="/api/v1")
 app.include_router(tickers_router, prefix="/api/v1")
 app.include_router(accuracy_router, prefix="/api/v1")
+app.include_router(ws_simulate_router)
 
 _scorer_scheduler = None
 

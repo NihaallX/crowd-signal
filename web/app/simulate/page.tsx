@@ -4,20 +4,32 @@ import { useState, type FormEvent } from "react"
 import { motion } from "framer-motion"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { LiveSimulationFeed } from "@/components/live-simulation-feed"
 import { SimulationForm } from "@/components/simulation-form"
 import { SimulationResults } from "@/components/simulation-results"
-import { useSimulation } from "@/hooks/useSimulation"
+import { useSimulationStream } from "@/hooks/useSimulationStream"
 
 export default function SimulatePage() {
   const [ticker, setTicker] = useState("NVDA")
   const [catalyst, setCatalyst] = useState("Earnings beat by 20%")
   const [horizonMinutes, setHorizonMinutes] = useState(120)
 
-  const { data, loading, error, analysisRunId, runSimulation } = useSimulation()
+  const {
+    events,
+    currentTick,
+    maxTicks,
+    isConnected,
+    isStreaming,
+    isComplete,
+    finalResult,
+    error,
+    analysisRunId,
+    startSimulation,
+  } = useSimulationStream()
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    await runSimulation({
+    await startSimulation({
       ticker,
       catalyst,
       horizon_minutes: horizonMinutes,
@@ -46,7 +58,7 @@ export default function SimulatePage() {
             ticker={ticker}
             catalyst={catalyst}
             horizonMinutes={horizonMinutes}
-            loading={loading}
+            loading={isStreaming && !isComplete}
             onTickerChange={setTicker}
             onCatalystChange={setCatalyst}
             onHorizonChange={setHorizonMinutes}
@@ -59,7 +71,17 @@ export default function SimulatePage() {
             </div>
           ) : null}
 
-          {data ? <SimulationResults data={data} analysisRunId={analysisRunId} /> : null}
+          {events.length > 0 ? (
+            <LiveSimulationFeed
+              events={events}
+              currentTick={currentTick}
+              maxTicks={maxTicks}
+              isConnected={isConnected}
+              isComplete={isComplete}
+            />
+          ) : null}
+
+          {finalResult ? <SimulationResults data={finalResult} analysisRunId={analysisRunId} /> : null}
         </div>
       </main>
       <Footer />

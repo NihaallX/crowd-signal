@@ -39,6 +39,7 @@ Crowd Signal is designed as a decision-support layer:
 
 Main endpoints:
 - `POST /api/v1/simulate`
+- `WS /ws/simulate`
 - `GET /api/v1/tickers`
 - `GET /api/v1/accuracy`
 - `GET /api/v1/accuracy/{ticker}`
@@ -107,6 +108,39 @@ Example response shape:
 }
 ```
 
+## Local Development
+
+### Backend
+
+```bash
+python -m venv .venv
+.venv\\Scripts\\activate
+pip install -r requirements.txt
+uvicorn api.main:app --reload --port 8000
+```
+
+Optional environment variables:
+
+- `DATABASE_URL`: enable memory persistence and backtesting accuracy summaries.
+- `GROQ_API_KEY`: enable vocal crowd narrative generation.
+
+### Frontend
+
+```bash
+cd web
+corepack pnpm install
+corepack pnpm run dev
+```
+
+Optional frontend environment variable:
+
+- `BACKEND_URL` (defaults to `http://localhost:8000`)
+- `NEXT_PUBLIC_WS_URL` (defaults to `wss://crowd-signal.onrender.com`, local dev fallback uses `ws://127.0.0.1:8000`)
+
+WebSocket keepalive:
+
+- Backend sends `{"type":"ping"}` every 10 seconds during active simulation streaming.
+- Frontend responds with `{"type":"pong"}` to keep Render free-tier connections alive.
 ## License and Usage Rights
 
 This project is intentionally **not open source**.
