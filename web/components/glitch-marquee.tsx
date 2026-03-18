@@ -6,9 +6,11 @@ const ease = [0.22, 1, 0.36, 1] as const
 
 const PARTNERS = [
   "PYTHON",
-  "LANGGRAPH",
   "FASTAPI",
   "NEXT.JS",
+  "WEBSOCKET",
+  "NEON POSTGRES",
+  "GROQ",
   "YFINANCE",
   "REDDIT API",
 ]

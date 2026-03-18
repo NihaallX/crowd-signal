@@ -3,6 +3,7 @@
 import { WorkflowDiagram } from "@/components/workflow-diagram"
 import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
+import Link from "next/link"
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -52,31 +53,36 @@ export function HeroSection() {
           <span className="block mt-2">
             Crowd Signal simulates how different trader archetypes - retail bulls, bears, whales, and algos - react to a market catalyst.
           </span>
+          <span className="block mt-2">Now with live streaming simulation feed and crowd thought updates in real time.</span>
           <span className="block mt-2">The output is a probability map, not a prediction.</span>
         </motion.p>
 
         {/* CTA Button */}
-        <motion.button
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6, ease }}
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
-          className="group flex items-center gap-0 bg-foreground text-background text-sm font-mono tracking-wider uppercase"
         >
-          <span className="flex items-center justify-center w-10 h-10 bg-[#ea580c]">
-            <motion.span
-              className="inline-flex"
-              whileHover={{ x: 3 }}
-              transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            >
-              <ArrowRight size={16} strokeWidth={2} className="text-background" />
-            </motion.span>
-          </span>
-          <span className="px-5 py-2.5">
-            Run Simulation
-          </span>
-        </motion.button>
+          <Link
+            href="/simulate"
+            className="group flex items-center gap-0 bg-foreground text-background text-sm font-mono tracking-wider uppercase"
+          >
+            <span className="flex items-center justify-center w-10 h-10 bg-[#ea580c]">
+              <motion.span
+                className="inline-flex"
+                whileHover={{ x: 3 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              >
+                <ArrowRight size={16} strokeWidth={2} className="text-background" />
+              </motion.span>
+            </span>
+            <span className="px-5 py-2.5">
+              Run Simulation
+            </span>
+          </Link>
+        </motion.div>
       </div>
     </section>
   )

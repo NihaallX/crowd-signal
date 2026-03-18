@@ -276,7 +276,7 @@ export function PricingSection() {
             Principles, stack, and status
           </h2>
           <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed max-w-xl">
-            Stack: Python, LangGraph, FastAPI, Next.js, yfinance, Reddit API. Status: MVP - actively building.
+            Stack: Python, FastAPI, Next.js, Neon Postgres, Groq, yfinance, Reddit API. Status: live MVP with real-time stream mode.
           </p>
         </div>
         <StatusLine />
@@ -296,7 +296,7 @@ export function PricingSection() {
         className="flex items-center gap-3 mt-6"
       >
         <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
-          {"* Active development. MVP live at your URL here. Built by two students with $0 budget."}
+          {"* Active development. Live simulation, memory, and accuracy tracking are enabled."}
         </span>
         <div className="flex-1 border-t border-border" />
       </motion.div>

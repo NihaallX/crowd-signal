@@ -76,10 +76,10 @@ function UptimeCounter() {
 
 /* ── stat block ── */
 const STATS = [
-  { label: "SIM_ENGINE", value: "PY+LANG" },
+  { label: "STREAM_MODE", value: "LIVE_WS" },
   { label: "BACKEND", value: "FASTAPI" },
   { label: "FRONTEND", value: "NEXTJS" },
-  { label: "COST", value: "$0" },
+  { label: "MARKETS", value: "US+IN" },
 ]
 
 function StatBlock({ label, value, index }: { label: string; value: string; index: number }) {
@@ -174,7 +174,7 @@ export function AboutSection() {
               CROWD_SIGNAL.md
             </span>
             <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
-              v3.1.0
+              live
             </span>
           </div>
 
@@ -201,10 +201,10 @@ export function AboutSection() {
                 className="flex flex-col gap-4"
               >
                 <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed">
-                  Crowd Signal is an AI-powered crowd simulation engine for stock market sentiment prediction. You provide a ticker and catalyst like earnings, headlines, or CEO tweets. It simulates how different trader archetypes react over the next 1 to 4 hours.
+                  Crowd Signal is an AI-powered crowd simulation engine for intraday sentiment mapping. You provide a ticker and catalyst like earnings, headlines, or macro events, and the system simulates how trader archetypes react over the next 1 to 4 hours.
                 </p>
                 <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed">
-                  Inspired by MiroFish - a multi-agent crowd simulation engine. We applied the same idea to intraday stock market psychology.
+                  It now includes live WebSocket streaming, catalyst reasoning transparency, memory-aware biasing, and directional accuracy tracking.
                 </p>
                 <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed">
                   This system does not tell you to buy or sell. It maps where the crowd is likely to cluster, because crowd behavior is what often moves prices intraday.

@@ -3,21 +3,21 @@
 import { useEffect, useState } from "react"
 
 const LOG_LINES = [
-  "> Parsing catalyst: Earnings beat by 20%",
-  "> Spawning crowd: 100 agents",
-  "> Personas: retail_bull, retail_bear, whale, algo",
-  "> Tick 01: stances initialized",
-  "> Tick 08: whale influence dominates local cluster",
-  "> Tick 12: algo amplification detected",
-  "> Tick 18: retail bears resisting positive pressure",
-  "> Tick 24: catalyst gravity still active",
-  "> Aggregating probability distribution...",
-  "> probability_up: 0.67",
-  "> probability_down: 0.08",
-  "> aggregate_stance: +0.31",
-  "> confidence band: medium-high",
-  "> This is not financial advice",
-  "> --------- CYCLE COMPLETE ---------",
+  "> WS connect: /ws/simulate",
+  "> init received: ticker=NVDA horizon=120",
+  "> catalyst_parsed: earnings beat + data center strength",
+  "> agents_spawned: 100 (bull, bear, whale, algo)",
+  "> tick 05: agent_thought retail_bull",
+  "> herd_detected: bullish cluster confirmed",
+  "> ping received from backend",
+  "> pong sent by client",
+  "> tick 10: agent_thought retail_bear",
+  "> tick 15: agent_thought whale",
+  "> tick 20: agent_thought algo",
+  "> narrator: crowd summary generated",
+  "> complete: probability_up=0.67 down=0.08",
+  "> this is probabilistic simulation, not financial advice",
+  "> --------- STREAM COMPLETE ---------",
 ]
 
 export function TerminalCard() {
