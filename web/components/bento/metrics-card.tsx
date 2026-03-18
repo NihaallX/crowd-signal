@@ -70,10 +70,10 @@ export function MetricsCard() {
         <span className="inline-block h-2 w-2 bg-[#ea580c]" />
       </div>
       <div className="flex-1 flex flex-col justify-center gap-6 p-6">
-        <ScrambleNumber target="0.31" label="Aggregate Stance" delay={500} />
-        <ScrambleNumber target="67.0%" label="Probability Up" delay={800} />
-        <ScrambleNumber target="8.0%" label="Probability Down" delay={1100} />
-        <ScrambleNumber target="100" label="Agents Spawned" delay={1400} />
+        <ScrambleNumber target="0.44" label="Aggregate Stance" delay={500} />
+        <ScrambleNumber target="71.0%" label="Probability Up" delay={800} />
+        <ScrambleNumber target="11.0%" label="Probability Down" delay={1100} />
+        <ScrambleNumber target="24" label="Ticks Streamed" delay={1400} />
       </div>
     </div>
   )

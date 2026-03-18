@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react"
 
 const PERSONAS = [
-  { name: "RETAIL_BULL", status: "FOMO", value: "+0.42" },
-  { name: "RETAIL_BEAR", status: "CAUTIOUS", value: "-0.06" },
-  { name: "WHALE", status: "FADING", value: "+0.18" },
-  { name: "ALGO", status: "AMPLIFYING", value: "+0.39" },
+  { name: "RETAIL_BULL", status: "MOMENTUM", value: "+0.58" },
+  { name: "RETAIL_BEAR", status: "DEFENSIVE", value: "-0.19" },
+  { name: "WHALE", status: "ACCUMULATING", value: "+0.33" },
+  { name: "ALGO", status: "TREND_FOLLOW", value: "+0.47" },
 ]
 
 export function StatusCard() {
@@ -46,7 +46,7 @@ export function StatusCard() {
               <span
                 className="h-1.5 w-1.5"
                 style={{
-                  backgroundColor: persona.status === "CAUTIOUS" ? "hsl(var(--muted-foreground))" : "#ea580c",
+                  backgroundColor: persona.status === "DEFENSIVE" ? "hsl(var(--muted-foreground))" : "#ea580c",
                 }}
               />
               <span className="text-xs font-mono text-muted-foreground">{persona.status}</span>
@@ -60,10 +60,14 @@ export function StatusCard() {
             <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">
               Bullish Cluster Density
             </span>
-            <span className="text-[9px] font-mono text-foreground">68%</span>
+            <span className="text-[9px] font-mono text-foreground">71%</span>
           </div>
           <div className="h-2 w-full border border-foreground">
-            <div className="h-full bg-foreground" style={{ width: "68%" }} />
+            <div className="h-full bg-foreground" style={{ width: "71%" }} />
+          </div>
+          <div className="mt-3 flex items-center justify-between text-[9px] tracking-[0.15em] uppercase text-muted-foreground">
+            <span>Herd Flag</span>
+            <span className="font-mono text-foreground">ONCE @ TICK 5+</span>
           </div>
         </div>
       </div>

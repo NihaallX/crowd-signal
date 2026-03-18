@@ -84,7 +84,7 @@ const PRINCIPLES: Principle[] = [
     description: "Assistive, not automated.",
     features: [
       { text: "Ticker + catalyst input", included: true },
-      { text: "Crowd reaction map", included: true },
+      { text: "Live crowd reaction stream", included: true },
       { text: "Human decision remains final", included: true },
       { text: "No broker execution", included: false },
       { text: "No guaranteed outcomes", included: false },
@@ -104,6 +104,7 @@ const PRINCIPLES: Principle[] = [
       { text: "Agent stances in [-1.0, +1.0]", included: true },
       { text: "Per-persona confidence scores", included: true },
       { text: "probability_up / probability_down", included: true },
+      { text: "One-time herd detection signal", included: true },
       { text: "No certainty claims", included: false },
       { text: "No deterministic forecasts", included: false },
       { text: "No guaranteed edge", included: false },
@@ -121,6 +122,7 @@ const PRINCIPLES: Principle[] = [
     features: [
       { text: "Archetype-level output breakdown", included: true },
       { text: "Catalyst and crowd influence visible", included: true },
+      { text: "Narrator summary before completion", included: true },
       { text: "Plain-language constraints", included: true },
       { text: "No hidden black box promises", included: false },
       { text: "No overclaiming", included: false },
@@ -276,7 +278,7 @@ export function PricingSection() {
             Principles, stack, and status
           </h2>
           <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed max-w-xl">
-            Stack: Python, FastAPI, Next.js, Neon Postgres, Groq, yfinance, Reddit API. Status: live MVP with real-time stream mode.
+            Stack: Python, FastAPI, Next.js, Neon Postgres, Groq, yfinance, Reddit API. Status: live MVP with real-time stream mode and fallback-safe API flow.
           </p>
         </div>
         <StatusLine />

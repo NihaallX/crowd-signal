@@ -174,7 +174,7 @@ export function AboutSection() {
               CROWD_SIGNAL.md
             </span>
             <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
-              live
+              v3.2 live
             </span>
           </div>
 
@@ -204,10 +204,10 @@ export function AboutSection() {
                   Crowd Signal is an AI-powered crowd simulation engine for intraday sentiment mapping. You provide a ticker and catalyst like earnings, headlines, or macro events, and the system simulates how trader archetypes react over the next 1 to 4 hours.
                 </p>
                 <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed">
-                  It now includes live WebSocket streaming, catalyst reasoning transparency, memory-aware biasing, and directional accuracy tracking.
+                  It now includes live WebSocket streaming with heartbeat keepalive, catalyst reasoning transparency, memory-aware biasing, and directional accuracy tracking.
                 </p>
                 <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed">
-                  This system does not tell you to buy or sell. It maps where the crowd is likely to cluster, because crowd behavior is what often moves prices intraday.
+                  It supports US and India symbols and includes crowd narrative with narrator summaries for explainable simulation output.
                 </p>
               </motion.div>
 
