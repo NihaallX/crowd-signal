@@ -170,3 +170,32 @@ class AccuracyStats(BaseModel):
     global_accuracy: TickerAccuracyEntry
     by_ticker: dict[str, TickerAccuracyEntry]
     last_updated: str
+
+
+class DailyReportEntry(BaseModel):
+    """Single ticker entry in the generated morning report."""
+
+    ticker: str
+    catalyst: str
+    headline: str
+    priority: str
+    aggregate_stance: float
+    probability_up: float
+    probability_down: float
+    crowd_verdict: str
+    verdict_strength: str
+    currency: str
+
+
+class DailyReportResponse(BaseModel):
+    """Daily report API payload for landing and manual checks."""
+
+    report_date: str
+    generated_at: str
+    us_entries: list[DailyReportEntry]
+    in_entries: list[DailyReportEntry]
+    accuracy_this_week: float
+    correct_this_week: int
+    total_this_week: int
+    status: str
+    message: Optional[str] = None

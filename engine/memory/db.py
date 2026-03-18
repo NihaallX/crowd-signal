@@ -40,6 +40,15 @@ def _get_connection() -> psycopg2.extensions.connection | None:
         return None
 
 
+def get_db_connection() -> psycopg2.extensions.connection | None:
+    """Public DB connection helper for other engine modules.
+
+    Returns:
+        A psycopg2 connection or None when DB is unavailable.
+    """
+    return _get_connection()
+
+
 def save_simulation_run(
     ticker: str,
     catalyst: str,
@@ -157,6 +166,42 @@ def get_recent_runs(ticker: str, limit: int = 3) -> list[dict[str, Any]]:
     except Exception as exc:  # noqa: BLE001
         logger.warning("memory_fetch_failed ticker=%s error=%s", ticker, exc)
         return []
+    finally:
+        try:
+            conn.close()
+        except Exception:  # noqa: BLE001
+            pass
+
+
+def get_latest_simulation_run_id(ticker: str, catalyst: str) -> str | None:
+    """Return the most recent simulation run id for ticker+catalyst.
+
+    This is used by batch scanner workflows that need to link derived rows
+    to a simulation run created by the existing save path.
+    """
+    conn = _get_connection()
+    if conn is None:
+        return None
+
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(
+                """
+                SELECT id
+                FROM simulation_runs
+                WHERE ticker = %s
+                  AND catalyst = %s
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (ticker.upper(), catalyst),
+            )
+            row = cursor.fetchone() or {}
+            value = row.get("id")
+            return str(value) if value is not None else None
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("latest_simulation_run_fetch_failed ticker=%s error=%s", ticker, exc)
+        return None
     finally:
         try:
             conn.close()

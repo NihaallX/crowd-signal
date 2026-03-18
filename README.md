@@ -43,6 +43,8 @@ Main endpoints:
 - `GET /api/v1/tickers`
 - `GET /api/v1/accuracy`
 - `GET /api/v1/accuracy/{ticker}`
+- `GET /api/v1/daily-report`
+- `POST /api/v1/daily-report/trigger` (requires `X-Admin-Key`)
 
 Example payload:
 
@@ -106,6 +108,18 @@ Example response shape:
   },
   "last_updated": "2026-03-17T12:34:56.000000+00:00"
 }
+```
+
+`GET /api/v1/daily-report` returns today's generated catalyst cards grouped by market. If the scheduler or trigger has not generated it yet, the endpoint returns `status: "generating"`.
+
+`POST /api/v1/daily-report/trigger` manually runs the scanner for the current day. Include the header `X-Admin-Key: <ADMIN_KEY>`.
+
+Example trigger call:
+
+```bash
+curl -X POST \
+  -H "X-Admin-Key: your-admin-key" \
+  https://your-api-host/api/v1/daily-report/trigger
 ```
 
 ## License and Usage Rights

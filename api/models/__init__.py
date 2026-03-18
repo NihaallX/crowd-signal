@@ -2,6 +2,8 @@
 
 from .schemas import (
 	AccuracyStats,
+	DailyReportEntry,
+	DailyReportResponse,
 	MemoryEntry,
 	PersonaSentiment,
 	SimulateRequest,
@@ -14,6 +16,8 @@ __all__ = [
 	"SimulationResult",
 	"PersonaSentiment",
 	"MemoryEntry",
+	"DailyReportEntry",
+	"DailyReportResponse",
 	"TickerAccuracyEntry",
 	"AccuracyStats",
 ]

@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { Suspense, useEffect, useRef, useState, type FormEvent } from "react"
 import { motion } from "framer-motion"
+import { useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { LiveSimulationFeed } from "@/components/live-simulation-feed"
@@ -9,10 +10,12 @@ import { SimulationForm } from "@/components/simulation-form"
 import { SimulationResults } from "@/components/simulation-results"
 import { useSimulationStream } from "@/hooks/useSimulationStream"
 
-export default function SimulatePage() {
+function SimulatePageContent() {
+  const searchParams = useSearchParams()
   const [ticker, setTicker] = useState("NVDA")
   const [catalyst, setCatalyst] = useState("Earnings beat by 20%")
   const [horizonMinutes, setHorizonMinutes] = useState(120)
+  const autoRunKeyRef = useRef<string | null>(null)
 
   const {
     events,
@@ -26,6 +29,37 @@ export default function SimulatePage() {
     analysisRunId,
     startSimulation,
   } = useSimulationStream()
+
+  useEffect(() => {
+    const paramTicker = (searchParams.get("ticker") || "").trim().toUpperCase()
+    const paramCatalyst = (searchParams.get("catalyst") || "").trim()
+    const paramHorizon = Number(searchParams.get("horizon_minutes") || searchParams.get("horizon") || "120")
+    const safeHorizon = Number.isFinite(paramHorizon) ? Math.max(60, Math.min(240, Math.round(paramHorizon))) : 120
+
+    if (paramTicker) setTicker(paramTicker)
+    if (paramCatalyst) setCatalyst(paramCatalyst)
+    setHorizonMinutes(safeHorizon)
+  }, [searchParams])
+
+  useEffect(() => {
+    const paramTicker = (searchParams.get("ticker") || "").trim().toUpperCase()
+    const paramCatalyst = (searchParams.get("catalyst") || "").trim()
+    if (!paramTicker || !paramCatalyst) return
+
+    const paramHorizon = Number(searchParams.get("horizon_minutes") || searchParams.get("horizon") || "120")
+    const safeHorizon = Number.isFinite(paramHorizon) ? Math.max(60, Math.min(240, Math.round(paramHorizon))) : 120
+    const runKey = `${paramTicker}|${paramCatalyst}|${safeHorizon}`
+
+    if (autoRunKeyRef.current === runKey) return
+    if (isStreaming) return
+
+    autoRunKeyRef.current = runKey
+    void startSimulation({
+      ticker: paramTicker,
+      catalyst: paramCatalyst,
+      horizon_minutes: safeHorizon,
+    })
+  }, [isStreaming, searchParams, startSimulation])
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -86,5 +120,13 @@ export default function SimulatePage() {
       </main>
       <Footer />
     </div>
+  )
+}
+
+export default function SimulatePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <SimulatePageContent />
+    </Suspense>
   )
 }

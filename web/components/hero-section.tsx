@@ -4,14 +4,18 @@ import { WorkflowDiagram } from "@/components/workflow-diagram"
 import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import type { ReactNode } from "react"
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-export function HeroSection() {
+type HeroSectionProps = {
+  reportSlot?: ReactNode
+}
+
+export function HeroSection({ reportSlot }: HeroSectionProps) {
   return (
     <section className="relative w-full px-12 pt-6 pb-12 lg:px-24 lg:pt-10 lg:pb-16">
       <div className="flex flex-col items-center text-center">
-        {/* Top headline */}
         <motion.h1
           initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -21,7 +25,8 @@ export function HeroSection() {
           READ THE CROWD.
         </motion.h1>
 
-        {/* Central Workflow Diagram */}
+        {reportSlot ?? null}
+
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -31,7 +36,6 @@ export function HeroSection() {
           <WorkflowDiagram />
         </motion.div>
 
-        {/* Bottom headline */}
         <motion.h1
           initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -42,7 +46,6 @@ export function HeroSection() {
           BEFORE IT MOVES.
         </motion.h1>
 
-        {/* Sub-headline */}
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -57,7 +60,6 @@ export function HeroSection() {
           <span className="block mt-2">The output is a probability map, not a prediction.</span>
         </motion.p>
 
-        {/* CTA Button */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -78,9 +80,7 @@ export function HeroSection() {
                 <ArrowRight size={16} strokeWidth={2} className="text-background" />
               </motion.span>
             </span>
-            <span className="px-5 py-2.5">
-              Run Simulation
-            </span>
+            <span className="px-5 py-2.5">Run Simulation</span>
           </Link>
         </motion.div>
       </div>
