@@ -16,6 +16,14 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+_STREAM_TICK_DELAY_SECONDS = 0.2
+_THOUGHT_SPEAKERS = [
+    {"agent_id": "retail_bull_047", "agent_name": "Retail Bull 047", "agent_type": "retail_bull"},
+    {"agent_id": "retail_bear_023", "agent_name": "Retail Bear 023", "agent_type": "retail_bear"},
+    {"agent_id": "whale_003", "agent_name": "Whale 003", "agent_type": "whale"},
+    {"agent_id": "algo_011", "agent_name": "Algo 011", "agent_type": "algo"},
+]
+
 
 def _summarize_agents(agents: list[dict[str, Any]]) -> dict[str, Any]:
     total = len(agents)
@@ -79,34 +87,33 @@ def _build_tick_thought(
     catalyst: str,
     tick: int,
     persona_mean_stance: dict[str, float],
+    previous_turn: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    thought_order = [
-        ("retail_bull", "retail_bull_047"),
-        ("retail_bear", "retail_bear_023"),
-        ("whale", "whale_003"),
-        ("algo", "algo_011"),
-    ]
-    persona, agent_id = thought_order[((tick // 5) - 1) % len(thought_order)]
+    turn = max(1, tick)
+    speaker = _THOUGHT_SPEAKERS[(turn - 1) % len(_THOUGHT_SPEAKERS)]
+    persona = str(speaker["agent_type"])
+    agent_id = str(speaker["agent_id"])
+    agent_name = str(speaker["agent_name"])
     stance = float(persona_mean_stance.get(persona, 0.0))
+    previous_name = str(previous_turn.get("agent_name", "previous speaker")) if previous_turn else ""
 
     if stance > 0.1:
-        message = (
-            f"Tick {tick}: {persona} sees upside building on {ticker}; "
-            f"catalyst still supports bullish positioning."
-        )
+        bias_message = f"I still like the upside in {ticker}; catalyst momentum remains bullish."
     elif stance < -0.1:
-        message = (
-            f"Tick {tick}: {persona} is leaning defensive on {ticker}; "
-            f"catalyst risk remains skewed to downside."
-        )
+        bias_message = f"I am staying defensive on {ticker}; catalyst risk still points to downside."
     else:
-        message = (
-            f"Tick {tick}: {persona} remains balanced on {ticker}; "
-            f"crowd still digesting catalyst signal."
-        )
+        bias_message = f"I am neutral on {ticker} for now; crowd is still digesting the catalyst."
+
+    if previous_name:
+        message = f"Replying to {previous_name}: {bias_message}"
+    else:
+        message = f"Opening take: {bias_message}"
 
     return {
+        "turn": turn,
         "agent_id": agent_id,
+        "agent_name": agent_name,
+        "agent_type": persona,
         "persona": persona,
         "stance": stance,
         "message": message,
@@ -202,7 +209,6 @@ async def run_simulation_streaming(
         "initial_mean_stance": initial_mean_stance,
     }
 
-    thought_ticks = {5, 10, 15, 20}
     stream_thoughts: list[dict[str, Any]] = []
     herd_already_detected = False
 
@@ -242,21 +248,22 @@ async def run_simulation_streaming(
                 }
                 herd_already_detected = True
 
-        if tick in thought_ticks:
-            thought = _build_tick_thought(
-                ticker=ticker,
-                catalyst=catalyst,
-                tick=tick,
-                persona_mean_stance=summary["persona_mean_stance"],
-            )
-            stream_thoughts.append(thought)
-            yield {
-                "type": "agent_thought",
-                "tick": tick,
-                **thought,
-            }
+        previous_turn = stream_thoughts[-1] if stream_thoughts else None
+        thought = _build_tick_thought(
+            ticker=ticker,
+            catalyst=catalyst,
+            tick=tick,
+            persona_mean_stance=summary["persona_mean_stance"],
+            previous_turn=previous_turn,
+        )
+        stream_thoughts.append(thought)
+        yield {
+            "type": "agent_thought",
+            "tick": tick,
+            **thought,
+        }
 
-        await asyncio.sleep(0)
+        await asyncio.sleep(_STREAM_TICK_DELAY_SECONDS)
 
     final_summary = _summarize_agents(agents)
 

@@ -41,7 +41,12 @@ function stringifyEvent(event: SimulationStreamEvent): string {
   }
 
   if (event.type === "agent_thought") {
-    return String(event.message ?? "Agent thought received")
+    const turn = Number(event.turn ?? 0)
+    const name = String(event.agent_name ?? event.agent_id ?? "unknown_agent")
+    const type = String(event.agent_type ?? event.persona ?? "unknown_type")
+    const message = String(event.message ?? "Agent thought received")
+    const turnPrefix = turn > 0 ? `Turn ${turn} | ` : ""
+    return `${turnPrefix}${name} (${type}): ${message}`
   }
 
   if (event.type === "narrator") {
