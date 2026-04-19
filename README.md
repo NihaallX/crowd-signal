@@ -63,40 +63,6 @@ Example live event lines:
 | `web/` | Next.js frontend (simulate page, live feed, analysis UI) |
 | `render.yaml` | Render backend deployment config |
 
-## Quick Start (Local)
-
-### 1) Prerequisites
-
-- Python 3.11+
-- Node.js 20+
-- pnpm (recommended via `corepack`)
-
-### 2) Backend Setup
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-copy .env.example .env
-```
-
-Start API:
-
-```bash
-uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### 3) Frontend Setup
-
-```bash
-cd web
-corepack pnpm install
-copy .env.local.example .env.local
-corepack pnpm dev
-```
-
-Frontend runs at `http://localhost:3000`.
-
 ## Environment Variables
 
 ### Backend (`.env`)
